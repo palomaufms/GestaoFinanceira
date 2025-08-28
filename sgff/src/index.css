@@ -1,3 +1,14 @@
+.amount.income { color: #0a7f2e; font-weight: 600; }
+.amount.expense { color: #c62828; font-weight: 600; }
+
+.form, .form-inline { display: flex; gap: .5rem; flex-wrap: wrap; }
+.form input, .form select, .form button,
+.form-inline input, .form-inline select, .form-inline button { padding: .5rem .75rem; }
+
+.kpis { display: grid; gap: .75rem; grid-template-columns: repeat(auto-fit,minmax(180px,1fr)); }
+.alerts ul { margin: .5rem 0; padding-left: 1.25rem; }
+
+
 body {
   font-family: sans-serif;
   margin: 0;
