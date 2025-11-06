@@ -14,42 +14,30 @@
     .container{max-width:1080px;margin:auto;padding:16px}
     .title{font-weight:800;font-size:clamp(20px,3vw,28px);letter-spacing:.3px}
     .subtitle{color:var(--muted);font-size:14px;margin-top:4px}
-
     .grid{display:grid;gap:12px}
     @media(min-width:768px){.grid-3{grid-template-columns:repeat(3,1fr)}.grid-2{grid-template-columns:repeat(2,1fr)}}
-
     .card{background:var(--card);border:1px solid #1f2937;border-radius:16px;box-shadow:0 10px 30px rgba(0,0,0,.25)}
     .card h2{font-size:16px;margin:0 0 8px}
     .card .p{padding:16px}
-
     .stat{display:flex;align-items:center;gap:10px}
     .stat .value{font-size:22px;font-weight:700}
     .stat .label{color:var(--muted);font-size:12px}
-
     .badge{display:inline-block;padding:4px 8px;border-radius:999px;font-size:12px}
     .badge.ok{background:rgba(34,197,94,.15);color:var(--ok)}
     .badge.warn{background:rgba(255,107,107,.15);color:var(--danger)}
-
     .row{display:flex;gap:8px;flex-wrap:wrap}
     .row>.grow{flex:1 1 auto}
-
     input,select,button{width:100%;padding:10px 12px;border-radius:10px;border:1px solid #374151;background:#0b1224;color:var(--text)}
     input::placeholder{color:#6b7280}
     label{font-size:12px;color:var(--muted);display:block;margin-bottom:6px}
     button{background:linear-gradient(180deg,#4f8cff,#376fd8);border:0;font-weight:700;cursor:pointer}
     button.secondary{background:#0b1224;border:1px solid #24324a}
-
     table{width:100%;border-collapse:separate;border-spacing:0}
     thead th{font-size:12px;text-align:left;color:var(--muted);padding:10px 12px;border-bottom:1px solid #24324a}
     tbody td{padding:12px;border-bottom:1px solid #1d2842}
     tbody tr:last-child td{border-bottom:0}
-
     .money-pos{color:var(--ok);font-weight:700}
     .money-neg{color:var(--danger);font-weight:700}
-
-    .footer{color:#9aa3b2;font-size:12px;text-align:center;padding:24px}
-
-    .sr-only{position:absolute;width:1px;height:1px;margin:-1px;border:0;padding:0;white-space:nowrap;clip-path:inset(50%);clip:rect(0 0 0 0);overflow:hidden}
   </style>
 </head>
 <body>
@@ -93,10 +81,10 @@
             </div>
             <div>
               <label for="tx-type">Tipo</label>
-              <select id="tx-type">
-                <option value="income">Receita</option>
-                <option value="expense">Despesa</option>
-                <option value="bill">Conta</option>
+              <select id="tx-type" required>
+                <option value="income">💰 Receita</option>
+                <option value="expense">💸 Despesa</option>
+                <option value="bill">🧾 Conta</option>
               </select>
             </div>
             <div>
@@ -110,11 +98,11 @@
           <div class="row" style="margin-top:10px">
             <div class="grow">
               <label for="tx-cat">Categoria</label>
-              <select id="tx-cat"></select>
+              <select id="tx-cat" required></select>
             </div>
             <div class="grow">
               <label for="tx-desc">Descrição</label>
-              <input id="tx-desc" maxlength="80" placeholder="Ex.: Supermercado" />
+              <input id="tx-desc" maxlength="80" placeholder="Ex.: Supermercado" required />
             </div>
             <div style="width:180px">
               <label for="tx-amount">Valor</label>
@@ -128,38 +116,11 @@
           <p id="toast" class="sr-only" aria-live="polite"></p>
         </form>
       </div>
-
-      <div class="card p">
-        <h2>Orçamentos (mês atual)</h2>
-        <form id="budget-form" class="row">
-          <div class="grow">
-            <label for="b-cat">Categoria</label>
-            <select id="b-cat"></select>
-          </div>
-          <div style="width:180px">
-            <label for="b-amount">Valor</label>
-            <input id="b-amount" type="number" step="0.01" min="0" />
-          </div>
-          <div style="width:160px">
-            <label for="b-month">Mês (YYYY-MM)</label>
-            <input id="b-month" pattern="\d{4}-\d{2}" />
-          </div>
-          <button type="submit">Adicionar/Atualizar</button>
-        </form>
-        <div id="budget-list" style="margin-top:12px"></div>
-      </div>
     </section>
 
     <section class="card p" style="margin-top:16px" aria-label="Transações">
       <div class="row" style="align-items:center;justify-content:space-between;margin-bottom:6px">
         <h2>Transações</h2>
-        <div class="row">
-          <button id="export-json" class="secondary">Exportar JSON</button>
-          <label class="secondary" style="display:inline-flex;align-items:center;gap:8px;padding:10px 12px;border-radius:10px;cursor:pointer">
-            Importar JSON
-            <input id="import-json" type="file" accept="application/json" style="display:none" />
-          </label>
-        </div>
       </div>
       <div style="overflow:auto">
         <table role="table" aria-label="Lista de transações">
@@ -178,243 +139,91 @@
         </table>
       </div>
     </section>
-
-    <section class="card p" style="margin-top:16px" aria-label="Alertas">
-      <h2>Alertas</h2>
-      <ul id="alerts"></ul>
-    </section>
-
-    <footer class="footer">
-      <strong>Acessibilidade:</strong> HTML semântico (header/main/sections/table), rótulos conectados, aria-live para anúncios.
-    </footer>
   </main>
 
   <script>
-    // ------- Utilidades -------
-    const $ = (sel) => document.querySelector(sel)
-    const $$ = (sel) => Array.from(document.querySelectorAll(sel))
-    const uid = () => Math.random().toString(36).slice(2,9)
-    const ymd = (d) => new Date(d).toISOString().slice(0,10)
-    const monthKey = (dateStr) => dateStr.slice(0,7)
-    const BRL = (v) => Number(v||0).toLocaleString('pt-BR',{style:'currency',currency:'BRL'})
+  document.addEventListener('DOMContentLoaded',()=>{
+  const state = {
+    categories: [
+      {id:'1', name:'Salário', type:'income'},
+      {id:'2', name:'Alimentação', type:'expense'},
+      {id:'3', name:'Transporte', type:'expense'},
+      {id:'4', name:'Contas Fixas', type:'bill'},
+    ],
+    transactions: []
+  };
 
-    // ------- Estado (localStorage) -------
-    const LS = {
-      get(k, fallback){ try{ return JSON.parse(localStorage.getItem(k)) ?? fallback }catch{ return fallback } },
-      set(k, v){ localStorage.setItem(k, JSON.stringify(v)) }
-    }
+  function BRL(v){return Number(v||0).toLocaleString('pt-BR',{style:'currency',currency:'BRL'})}
 
-    const state = {
-      categories: LS.get('sgff_categories', [
-        { id:'c1', name:'Salário', type:'income' },
-        { id:'c2', name:'Alimentação', type:'expense' },
-        { id:'c3', name:'Transporte', type:'expense' },
-        { id:'c4', name:'Moradia', type:'expense' },
-        { id:'c5', name:'Lazer', type:'expense' },
-        { id:'c6', name:'Contas', type:'bill' },
-      ]),
-      transactions: LS.get('sgff_transactions', [
-        { id:uid(), date: ymd(new Date()), type:'income', categoryId:'c1', description:'Salário', amount:4500, status:'paid' },
-        { id:uid(), date: ymd(new Date()), type:'expense', categoryId:'c2', description:'Supermercado', amount:420.5, status:'paid' },
-        { id:uid(), date: ymd(new Date()), type:'bill', categoryId:'c6', description:'Energia', amount:230, status:'unpaid' },
-      ]),
-      budgets: LS.get('sgff_budgets', [
-        { id:uid(), month: monthKey(ymd(new Date())), categoryId:'c2', amount:1200 },
-        { id:uid(), month: monthKey(ymd(new Date())), categoryId:'c3', amount:600 },
-        { id:uid(), month: monthKey(ymd(new Date())), categoryId:'c5', amount:400 },
-      ])
-    }
+  function renderCategories(){
+    const txCat=document.querySelector('#tx-cat');
+    txCat.innerHTML=state.categories.map(c=>`<option value="${c.id}">${c.name}</option>`).join('');
+  }
 
-    function saveAll(){
-      LS.set('sgff_categories', state.categories)
-      LS.set('sgff_transactions', state.transactions)
-      LS.set('sgff_budgets', state.budgets)
-    }
+  function updateStats(){
+    const income = state.transactions
+      .filter(t=>t.type==='income')
+      .reduce((s,t)=>s+(t.amount||0),0);
+    const expense = state.transactions
+      .filter(t=>t.type==='expense' || t.type==='bill')
+      .reduce((s,t)=>s+(t.amount||0),0);
+    const balance = income - expense;
 
-    // ------- DOM helpers -------
-    function announce(msg){ const el = $('#toast'); el.textContent = msg }
+    document.querySelector('#stat-income').textContent = BRL(income);
+    document.querySelector('#stat-expense').textContent = BRL(expense);
+    document.querySelector('#stat-balance').textContent = BRL(balance);
+  }
 
-    function renderCategories(){
-      const optsExpenses = state.categories.filter(c=>c.type!=='income')
-      const txCat = $('#tx-cat'); txCat.innerHTML = optsExpenses.map(c=>`<option value="${c.id}">${c.name}</option>`).join('')
-      const bCat = $('#b-cat'); bCat.innerHTML = optsExpenses.map(c=>`<option value="${c.id}">${c.name}</option>`).join('')
-    }
+  function renderTransactions(){
+    const tbody=document.querySelector('#tx-body');
+    tbody.innerHTML=state.transactions.map(t=>{
+      const cat=state.categories.find(c=>c.id===t.categoryId)?.name||'-';
+      const cls=t.type==='income'?'money-pos':t.type==='expense'?'money-neg':'';
+      const tipoTraduzido=t.type==='income'?'💰 Receita':t.type==='expense'?'💸 Despesa':'🧾 Conta';
+      return `<tr>
+        <td>${t.date}</td>
+        <td><span class="${cls}">${tipoTraduzido}</span></td>
+        <td>${cat}</td>
+        <td>${t.description||''}</td>
+        <td style="text-align:right" class="${cls}">${BRL(t.amount)}</td>
+        <td style="text-align:center"><span class="badge ${t.status==='paid'?'ok':'warn'}">${t.status==='paid'?'Pago':'Em aberto'}</span></td>
+        <td style="text-align:right"><button class="secondary" data-del="${t.id}">Excluir</button></td>
+      </tr>`;
+    }).join('');
 
-    function renderBudgets(){
-      const box = $('#budget-list');
-      const rows = state.budgets.map(b=>{
-        const name = state.categories.find(c=>c.id===b.categoryId)?.name || '?'
-        return `<div class="row" style="align-items:center;justify-content:space-between;border:1px solid #223056;background:#0b1224;padding:8px 10px;border-radius:10px">
-          <div><strong>${b.month}</strong> — ${name}</div>
-          <div class="row" style="align-items:center;gap:8px">
-            <div>${BRL(b.amount)}</div>
-            <button class="secondary" data-del-budget="${b.id}">Excluir</button>
-          </div>
-        </div>`
-      }).join('')
-      box.innerHTML = rows || '<p class="label">Sem orçamentos cadastrados.</p>'
-      box.querySelectorAll('[data-del-budget]').forEach(btn=> btn.addEventListener('click', (e)=>{
-        const id = e.currentTarget.getAttribute('data-del-budget')
-        state.budgets = state.budgets.filter(x=>x.id!==id)
-        saveAll(); render(); announce('Orçamento removido')
-      }))
-    }
+    // Evento de exclusão
+    tbody.querySelectorAll('[data-del]').forEach(btn => {
+      btn.addEventListener('click', e => {
+        const id = e.currentTarget.getAttribute('data-del');
+        state.transactions = state.transactions.filter(x => x.id !== id);
+        renderTransactions();
+        updateStats();
+      });
+    });
 
-    function renderTransactions(){
-      const tbody = $('#tx-body');
-      tbody.innerHTML = state.transactions.map(t=>{
-        const cat = state.categories.find(c=>c.id===t.categoryId)?.name || '-'
-        const cls = t.type==='income' ? 'money-pos' : 'money-neg'
-        return `<tr>
-          <td>${t.date}</td>
-          <td>${t.type}</td>
-          <td>${cat}</td>
-          <td>${t.description||''}</td>
-          <td style="text-align:right" class="${cls}">${BRL(t.amount)}</td>
-          <td style="text-align:center"><span class="badge ${t.status==='paid'?'ok':'warn'}">${t.status==='paid'?'Pago':'Em aberto'}</span></td>
-          <td style="text-align:right">
-            <button class="secondary" data-edit="${t.id}">Editar</button>
-            <button class="secondary" data-del="${t.id}">Excluir</button>
-          </td>
-        </tr>`
-      }).join('')
+    updateStats();
+  }
 
-      // ações
-      tbody.querySelectorAll('[data-del]').forEach(btn=> btn.addEventListener('click',(e)=>{
-        const id = e.currentTarget.getAttribute('data-del')
-        state.transactions = state.transactions.filter(x=>x.id!==id)
-        saveAll(); render(); announce('Transação removida')
-      }))
-      tbody.querySelectorAll('[data-edit]').forEach(btn=> btn.addEventListener('click',(e)=>{
-        const id = e.currentTarget.getAttribute('data-edit')
-        const t = state.transactions.find(x=>x.id===id)
-        if(!t) return
-        $('#tx-date').value = t.date
-        $('#tx-type').value = t.type
-        $('#tx-status').value = t.status
-        $('#tx-cat').value = t.categoryId
-        $('#tx-desc').value = t.description
-        $('#tx-amount').value = t.amount
-        // overwrite on save
-        $('#tx-form').dataset.editing = id
-        announce('Editando transação...')
-      }))
-    }
+  document.querySelector('#tx-form').addEventListener('submit',e=>{
+    e.preventDefault();
+    const t={
+      id:Date.now().toString(),
+      date:document.querySelector('#tx-date').value,
+      type:document.querySelector('#tx-type').value,
+      status:document.querySelector('#tx-status').value,
+      categoryId:document.querySelector('#tx-cat').value,
+      description:document.querySelector('#tx-desc').value,
+      amount:parseFloat(document.querySelector('#tx-amount').value)
+    };
+    state.transactions.push(t);
+    renderTransactions();
+    e.target.reset();
+  });
 
-    function renderStatsAndAlerts(){
-      let income=0, expense=0
-      state.transactions.forEach(t=>{ if(t.type==='income') income+=t.amount; else expense+=t.amount })
-      $('#stat-income').textContent = BRL(income)
-      $('#stat-expense').textContent = BRL(expense)
-      $('#stat-balance').textContent = BRL(income-expense)
+  renderCategories();
+  updateStats();
+});
 
-      // Alerts: bills due next 7 days + budget overflow current month
-      const now = new Date(); const soon = new Date(now); soon.setDate(now.getDate()+7)
-      const alerts = []
-      state.transactions.filter(t=>t.type==='bill' && t.status==='unpaid').forEach(t=>{
-        const due = new Date(t.date)
-        if(due>=now && due<=soon){ alerts.push(`Conta "${t.description}" vence em ${t.date}`) }
-      })
-      const month = monthKey(ymd(new Date()))
-      const spentByCat = {}
-      state.transactions.filter(t=>t.type!=='income' && monthKey(t.date)===month).forEach(t=>{
-        spentByCat[t.categoryId] = (spentByCat[t.categoryId]||0)+Number(t.amount)
-      })
-      state.budgets.filter(b=>b.month===month).forEach(b=>{
-        const spent = spentByCat[b.categoryId]||0
-        if(spent > b.amount){
-          const name = state.categories.find(c=>c.id===b.categoryId)?.name || '?'
-          alerts.push(`Orçamento de ${name} estourado: ${BRL(spent)} / ${BRL(b.amount)}`)
-        }
-      })
-      const ul = $('#alerts');
-      ul.innerHTML = alerts.length ? alerts.map(a=>`<li>• ${a}</li>`).join('') : '<li class="label">Sem alertas no momento.</li>'
-    }
-
-    function render(){
-      renderCategories();
-      renderBudgets();
-      renderTransactions();
-      renderStatsAndAlerts();
-    }
-
-    // ------- Eventos -------
-    $('#tx-date').value = ymd(new Date())
-
-    $('#tx-form').addEventListener('submit', (e)=>{
-      e.preventDefault()
-      const editing = e.currentTarget.dataset.editing
-      const tx = {
-        id: editing || uid(),
-        date: $('#tx-date').value,
-        type: $('#tx-type').value,
-        status: $('#tx-status').value,
-        categoryId: $('#tx-cat').value,
-        description: $('#tx-desc').value,
-        amount: Number($('#tx-amount').value||0),
-      }
-      if(!tx.categoryId || tx.amount<=0){ announce('Preencha categoria e valor'); return }
-      if(editing){
-        state.transactions = state.transactions.map(t=> t.id===editing? tx : t)
-        delete e.currentTarget.dataset.editing
-        announce('Transação atualizada')
-      } else {
-        state.transactions = [tx, ...state.transactions]
-        announce('Transação adicionada')
-      }
-      saveAll(); render(); e.target.reset(); $('#tx-date').value = ymd(new Date())
-    })
-
-    $('#budget-form').addEventListener('submit', (e)=>{
-      e.preventDefault()
-      const b = {
-        id: uid(),
-        month: $('#b-month').value || monthKey(ymd(new Date())),
-        categoryId: $('#b-cat').value,
-        amount: Number($('#b-amount').value||0),
-      }
-      if(!b.categoryId || !b.amount){ announce('Informe categoria e valor do orçamento'); return }
-      const exists = state.budgets.find(x=>x.month===b.month && x.categoryId===b.categoryId)
-      if(exists){ exists.amount = b.amount } else { state.budgets = [b, ...state.budgets] }
-      saveAll(); render(); e.target.reset(); announce('Orçamento salvo')
-    })
-
-    $('#export-json').addEventListener('click', ()=>{
-      const blob = new Blob([JSON.stringify(state,null,2)], {type:'application/json'})
-      const a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = `sgff-backup-${ymd(new Date())}.json`; a.click();
-    })
-
-    $('#import-json').addEventListener('change', (e)=>{
-      const f = e.target.files?.[0]; if(!f) return
-      const reader = new FileReader();
-      reader.onload = ()=>{
-        try{
-          const obj = JSON.parse(String(reader.result||'{}'))
-          if(obj.categories) state.categories = obj.categories
-          if(obj.transactions) state.transactions = obj.transactions
-          if(obj.budgets) state.budgets = obj.budgets
-          saveAll(); render(); announce('Backup restaurado')
-        }catch{ announce('Arquivo inválido') }
-      }
-      reader.readAsText(f)
-    })
-
-    render()
   </script>
 </body>
 </html>
-=======
-<!doctype html>
-<html lang="en">
-  <head>
-    <meta charset="UTF-8" />
-    <link rel="icon" type="image/svg+xml" href="/vite.svg" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Vite + React</title>
-  </head>
-  <body>
-    <div id="root"></div>
-    <script type="module" src="/src/main.jsx"></script>
-  </body>
-</html>
-
